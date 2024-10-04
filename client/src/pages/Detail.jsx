@@ -55,7 +55,7 @@ export default function Detail() {
                     <p className="text-gray-400 text-md">Developed By</p>
                     <p>{game.developer}</p>
                   </div>
-                  {game.download_link && (
+                  {game.download_link != null || game.download_link != "" && (
                     <Button
                       className="flex self-start bg-white text-black w-fit"
                       onClick={() =>
@@ -95,7 +95,7 @@ export default function Detail() {
             </section>
             <section className="mb-10">
               <h1 className="text-3xl font-bold mb-4">Game Overview</h1>
-              <div className="w-full">
+              <div className="w-full text-justify">
                 <p className="text-lg">{game.game_detail}</p>
               </div>
             </section>

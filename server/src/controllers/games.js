@@ -2,15 +2,16 @@ const express = require("express");
 const app = express();
 const Fuse = require("fuse.js");
 const prisma = require("../config/prisma");
+require("dotenv").config();
 const AWS = require("aws-sdk");
 const { extname } = require("path");
 const multer = require("multer");
 const { type } = require("os");
-
+const sharp = require("sharp");
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-  region: "ap-southeast-2",
+  secretAccessKey: process.env.AWS_SECRET,
+  region: process.env.AWS_REGION,
 });
 
 async function getGames(req, res) {
@@ -66,15 +67,42 @@ async function getGameByID(req, res) {
 }
 
 async function addGame(req, res) {
-  const { title, game_detail, category, developer, publisher } = req.body;
+  let { title, game_detail, category, developer, publisher, group, isAI } =
+    req.body;
   const file = req.file;
 
-  if (!title || !game_detail || !category || !developer || !publisher) {
+  if (
+    !title ||
+    !game_detail ||
+    !category ||
+    !developer ||
+    !publisher ||
+    !group ||
+    !isAI
+  ) {
     return res.status(400).json({ error: "Please fill all the fields" });
   }
 
-  if (typeof title !== "string" || typeof game_detail !== "string" || typeof category !== "string" || typeof developer !== "string" || typeof publisher !== "string") {
+  if (
+    typeof title !== "string" ||
+    typeof game_detail !== "string" ||
+    typeof category !== "string" ||
+    typeof developer !== "string" ||
+    typeof publisher !== "string" ||
+    typeof group !== "string" ||
+    typeof isAI !== "string"
+  ) {
     return res.status(400).json({ error: "Invalid input" });
+  }
+
+  if (isAI === "true") {
+    isAI = true;
+  } else if (isAI === "false") {
+    isAI = false;
+  } else {
+    return res
+      .status(400)
+      .json({ error: "Invalid value for isAI. Please use 'true' or 'false'" });
   }
 
   const gameExists = await prisma.games.findFirst({
@@ -92,19 +120,20 @@ async function addGame(req, res) {
   }
 
   try {
+    console.log(file);
     // Convert the cover image to WebP format using sharp
     const webpBuffer = await sharp(file.buffer).webp().toBuffer();
 
     const uploadParams = {
-      Bucket: 'pusatstudibucket',
+      Bucket: "pusatstudibucket",
       Key: `covers/${title.replace(/\s/g, "_")}_cover.webp`,
       Body: webpBuffer,
-      ContentType: 'image/webp',
-      ACL: 'public-read',
+      ContentType: "image/webp",
+      ACL: "public-read",
     };
 
     const uploadResult = await s3.upload(uploadParams).promise();
-    console.log('Cover uploaded to S3:', uploadResult.Location);
+    console.log("Cover uploaded to S3:", uploadResult.Location);
 
     const game = await prisma.games.create({
       data: {
@@ -113,7 +142,9 @@ async function addGame(req, res) {
         category,
         developer,
         publisher,
-        cover: uploadResult.Location,
+        group,
+        isAI,
+        cover: uploadResult.Key.split("/").pop(),
       },
     });
 

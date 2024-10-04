@@ -2,11 +2,11 @@ const express = require("express");
 const app = express();
 const path = require("path");
 const cors = require("cors");
-const csurf = require("csurf");
+// const csurf = require("csurf");
 const cookieParser = require("cookie-parser");
 
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// app.use(cookieParser());
 
 app.use(cors({ origin: "http://localhost:5173" }));
 
@@ -31,15 +31,15 @@ app.use(
 
 const gamesRouter = require("./src/routes/games");
 
-const csrfProtection = csurf({
-  cookie: {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: true,
-  },
-});
+// const csrfProtection = csurf({
+//   cookie: {
+//     httpOnly: true,
+//     secure: process.env.NODE_ENV === "production",
+//     sameSite: true,
+//   },
+// });
 
-app.use(csrfProtection);
+// app.use(csrfProtection);
 
 app.use("/api/games", gamesRouter);
 

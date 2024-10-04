@@ -2,26 +2,35 @@ import { useEffect, useState } from "react";
 import CardDefault from "../components/CardDefault";
 import api from "../helper/api";
 import Spinner from "../components/Spinner";
-import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
 export default function List() {
   const [loading, setLoading] = useState(true);
   const [cardData, setCardData] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12; // Number of items per page
 
   useEffect(() => {
     const fetch = async () => {
-      const cardDataRequest = await api.get("/games", {
-        params: {
-          skip: 0,
-          take: 12,
-        },
-      });
+      setLoading(true);
 
       try {
+        const cardDataRequest = await api.get("/games", {
+          params: {
+            skip: (currentPage - 1) * itemsPerPage,
+            take: itemsPerPage,
+          },
+        });
+
         const cardDataResponse = cardDataRequest.data;
-        setCardData(cardDataResponse);
+
+        // Sort the card data alphabetically by title
+        const sortedCardData = cardDataResponse.sort((a, b) =>
+          a.title.localeCompare(b.title)
+        );
+
+        setCardData(sortedCardData);
       } catch (error) {
         console.log(error);
       } finally {
@@ -30,7 +39,13 @@ export default function List() {
     };
 
     fetch();
-  }, []);
+  }, [currentPage]); // Re-run the effect when the currentPage changes
+
+  const totalPages = Math.ceil(cardData.length / itemsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <div>
@@ -42,18 +57,50 @@ export default function List() {
         {loading ? (
           <Spinner />
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 place-items-center gap-10">
-            {cardData.map((data) => (
-              <CardDefault
-                key={data.id}
-                id={data.id}
-                group={data.group}
-                title={data.title}
-                cover={data.cover}
-                isAI={data.isAI}
-              />
-            ))}
-          </div>
+          <>
+            <div className="grid grid-cols-2 md:grid-cols-4 place-items-center gap-10">
+              {cardData.map((data) => (
+                <CardDefault
+                  key={data.id}
+                  id={data.id}
+                  group={data.group}
+                  title={data.title}
+                  cover={data.cover}
+                  isAI={data.isAI}
+                />
+              ))}
+            </div>
+            {/* Pagination Controls */}
+            <div className="flex justify-center items-center mt-6">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-4 py-2 mx-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Previous
+              </button>
+              {Array.from({ length: totalPages }, (_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`px-4 py-2 mx-1 rounded-md ${
+                    currentPage === index + 1
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-300 hover:bg-gray-400"
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 mx-2 bg-gray-300 rounded-md hover:bg-gray-400"
+              >
+                Next
+              </button>
+            </div>
+          </>
         )}
       </div>
       <Footer />
