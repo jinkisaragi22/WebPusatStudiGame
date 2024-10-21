@@ -1,19 +1,18 @@
 {
   "dependencies": {
-    "@prisma/client": "^5.13.0",
-    "aws-sdk": "^2.1673.0",
+    "@aws-sdk/client-s3": "^3.666.0",
+    "@prisma/client": "^5.20.0",
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
+    "express": "^4.21.0",
     "fuse.js": "^7.0.0",
     "multer": "^1.4.5-lts.1",
     "sharp": "^0.33.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.0",
-    "prisma": "^5.13.0"
+    "nodemon": "^3.1.7",
+    "prisma": "^5.20.0"
   },
   "name": "server",
   "version": "1.0.0",

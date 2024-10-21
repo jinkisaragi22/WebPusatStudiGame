@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 
 export default function Banner({ banners }) {
   console.log(banners);
+  const api = import.meta.env.VITE_BUCKET_URL;
   return (
     <Carousel transition={{duration: 1}} loop autoplay autoplayDelay={10000} className="rounded-xl z-10">
-      {banners.map((banner) => (
+      {banners.slice(0,3).map((banner) => (
         <div key={banner.id} className="relative h-96">
           <img
-            src={`https://pusatstudibucket.s3.ap-southeast-2.amazonaws.com/covers/${banner.cover}`}
+            src={`${api}/covers/${banner.cover}`}
             alt={banner.title}
             className="h-full w-full object-cover aspect-video"
           />

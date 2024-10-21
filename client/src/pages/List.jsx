@@ -9,7 +9,7 @@ export default function List() {
   const [loading, setLoading] = useState(true);
   const [cardData, setCardData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; // Number of items per page
+  const itemsPerPage = 12; 
 
   useEffect(() => {
     const fetch = async () => {
@@ -25,7 +25,7 @@ export default function List() {
 
         const cardDataResponse = cardDataRequest.data;
 
-        // Sort the card data alphabetically by title
+        // Alphabeticall order
         const sortedCardData = cardDataResponse.sort((a, b) =>
           a.title.localeCompare(b.title)
         );
@@ -39,7 +39,7 @@ export default function List() {
     };
 
     fetch();
-  }, [currentPage]); // Re-run the effect when the currentPage changes
+  }, [currentPage]); 
 
   const totalPages = Math.ceil(cardData.length / itemsPerPage);
 

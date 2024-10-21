@@ -1,9 +1,8 @@
 const express = require("express");
 const router = express.Router();
-express.json();
 const multer = require("multer");
 const path = require("path");
-const AWS = require("aws-sdk");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { extname } = require("path");
 const prisma = require("../config/prisma");
 const {
@@ -14,14 +13,16 @@ const {
 } = require("../controllers/games");
 const sharp = require("sharp");
 
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET,
-  region: "ap-southeast-2",
+
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET,
+  },
 });
 
-const storageCover = multer.memoryStorage(); // Store the file in memory
-
+const storageCover = multer.memoryStorage(); 
 const uploadCover = multer({ storage: storageCover });
 
 router.get("/", getGames);
@@ -29,7 +30,7 @@ router.get("/id/:id", getGameByID);
 router.get("/search", getGame);
 router.post("/", uploadCover.single("cover"), addGame);
 
-const storageAssets = multer.memoryStorage(); // Store the file in memory
+const storageAssets = multer.memoryStorage(); 
 const uploadAssets = multer({ storage: storageAssets });
 
 router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
@@ -57,9 +58,10 @@ router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
   const gameTitle = game.title.replace(/\s/g, "_");
 
   try {
-    // Convert the image to WebP format using sharp
+    // Convert the image to WebP format
     const webpBuffer = await sharp(file.buffer).webp().toBuffer();
 
+    
     const uploadParams = {
       Bucket: "pusatstudibucket",
       Key: `images/${gameTitle}_image_${Date.now()}.webp`,
@@ -68,7 +70,8 @@ router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
       ACL: "public-read",
     };
 
-    const uploadResult = await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    const uploadResult = await s3Client.send(command);
     console.log("Image uploaded to S3:", uploadResult.Location);
 
     const image = await prisma.assets.create({
@@ -113,6 +116,7 @@ router.post("/upload/video", uploadAssets.single("video"), async (req, res) => {
 
   const gameTitle = game.title.replace(/\s/g, "_");
 
+  
   const uploadParams = {
     Bucket: "pusatstudibucket",
     Key: `videos/${gameTitle}_video_${Date.now()}${extname(file.originalname)}`,
@@ -121,7 +125,8 @@ router.post("/upload/video", uploadAssets.single("video"), async (req, res) => {
   };
 
   try {
-    const uploadResult = await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    const uploadResult = await s3Client.send(command);
     console.log("Video uploaded to S3:", uploadResult.Location);
 
     const video = await prisma.assets.create({

@@ -12,6 +12,8 @@ export default function Detail() {
   const [game, setGame] = useState({});
   const { gameID } = useParams();
 
+  const bucket = import.meta.env.VITE_BUCKET_URL;
+
   useEffect(() => {
     const fetch = async () => {
       try {
@@ -39,7 +41,7 @@ export default function Detail() {
               <div className="flex flex-col md:flex-row gap-10 items-center ">
                 <div className="relative w-72 h-auto md:w-auto md:h-96 flex-shrink-0">
                   <img
-                    src={`https://pusatstudibucket.s3.ap-southeast-2.amazonaws.com/covers/${game.cover}`}
+                    src={`${bucket}/covers/${game.cover}`}
                     alt={game.title}
                     className="object-cover w-full h-full rounded-xl"
                   />
@@ -81,7 +83,7 @@ export default function Detail() {
                     .map((asset) => (
                       <img
                         key={asset.id}
-                        src={`https://pusatstudibucket.s3.ap-southeast-2.amazonaws.com/images/${asset.filename}`}
+                        src={`${bucket}/images/${asset.filename}`}
                         alt={`${asset.title} screenshot`}
                         className="w-full h-44 object-cover rounded-3xl"
                       />
@@ -115,7 +117,7 @@ export default function Detail() {
                         controls
                       >
                         <source
-                          src={`https://pusatstudibucket.s3.ap-southeast-2.amazonaws.com/videos/${asset.filename}`}
+                          src={`${bucket}/videos/${asset.filename}`}
                           type="video/mp4"
                         />
                         Your browser does not support the video tag.

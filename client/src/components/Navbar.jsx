@@ -10,12 +10,14 @@ export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [isMdScreen, setIsMdScreen] = useState(window.innerWidth < 1024);
 
+  const api = import.meta.env.VITE_BASE_URL;
+
   const handleSearch = async (e) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       try {
         const response = await fetch(
-          `http://localhost:5000/api/games/search?title=${searchQuery}`
+          `${api}/games/search?title=${searchQuery}`
         );
         const data = await response.json();
         setSearchResults(data);
@@ -76,7 +78,7 @@ export default function Navbar() {
             <div className="flex justify-between items-center w-full">
               <form
                 onSubmit={handleSearch}
-                className="flex justify-center relative w-full max-w-sm"
+                className="flex justify-center relative w-full max-w-sm gap-4"
               >
                 <svg
                   fill="none"
@@ -85,7 +87,7 @@ export default function Navbar() {
                   strokeLinejoin="round"
                   strokeWidth="2"
                   viewBox="0 0 24 24"
-                  className="w-7 h-7 absolute left-11 top-1/2 transform -translate-y-1/2"
+                  className="w-7 h-7 absolute left-7 md:left-11 top-1/2 transform -translate-y-1/2"
                 >
                   <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>

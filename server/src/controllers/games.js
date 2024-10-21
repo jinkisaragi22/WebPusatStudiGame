@@ -2,16 +2,17 @@ const express = require("express");
 const app = express();
 const Fuse = require("fuse.js");
 const prisma = require("../config/prisma");
-require("dotenv").config();
-const AWS = require("aws-sdk");
+const { S3Client, PutObjectCommand } = require("@aws-sdk/client-s3");
 const { extname } = require("path");
 const multer = require("multer");
 const { type } = require("os");
 const sharp = require("sharp");
-const s3 = new AWS.S3({
-  accessKeyId: process.env.AWS_ACCESS_KEY,
-  secretAccessKey: process.env.AWS_SECRET,
+const s3Client = new S3Client({
   region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY,
+    secretAccessKey: process.env.AWS_SECRET,
+  },
 });
 
 async function getGames(req, res) {
@@ -132,7 +133,8 @@ async function addGame(req, res) {
       ACL: "public-read",
     };
 
-    const uploadResult = await s3.upload(uploadParams).promise();
+    const command = new PutObjectCommand(uploadParams);
+    const uploadResult = await s3Client.send(command);
     console.log("Cover uploaded to S3:", uploadResult.Location);
 
     const game = await prisma.games.create({
