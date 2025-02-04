@@ -9,43 +9,34 @@ import CardDefault from "../components/CardDefault";
 import { Link } from "react-router-dom";
 
 export default function Home() {
-  const [bannerData, setBannerData] = useState({});
+  const [bannerData, setBannerData] = useState([]);
   const [cardData, setCardData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetch = async () => {
-      const bannerDataRequest = await api.get("/games", {
-        params: {
-          skip: 0,
-          take: 3,
-        },
-      });
-
-      const cardDataRequest = await api.get("/games", {
-        // params: {
-        //   skip: 0,
-        //   take: 4,
-        // },
-      });
-
       try {
-        const [bannerDataResponse, cardDataResponse] = await Promise.all([
-          bannerDataRequest.data,
-          cardDataRequest.data,
-        ]);
-        const lastFourCards = cardDataResponse.slice(-4).reverse();
-
+        const bannerDataRequest = await api.get("/games", { params: { skip: 0, take: 3 } });
+        const cardDataRequest = await api.get("/games");
+  
+  
+        const bannerDataResponse = bannerDataRequest.data?.games || bannerDataRequest.data || [];
+        const cardDataResponse = cardDataRequest.data?.games || cardDataRequest.data || [];
+  
+  
+        const lastFourCards = Array.isArray(cardDataResponse)
+          ? cardDataResponse.slice(-4).reverse()
+          : [];
+  
         setBannerData(bannerDataResponse);
         setCardData(lastFourCards);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
-        console.log(cardData)
       }
     };
-
+  
     fetch();
   }, []);
   return (

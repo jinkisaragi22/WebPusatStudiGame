@@ -4,48 +4,38 @@ import api from "../helper/api";
 import Spinner from "../components/Spinner";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { Pagination } from "../components/Pagination";
 
 export default function List() {
   const [loading, setLoading] = useState(true);
   const [cardData, setCardData] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12; 
+  const [totalItems, setTotalItems] = useState(0); // Total number of games
+  const itemsPerPage = 12;
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       setLoading(true);
-
       try {
-        const cardDataRequest = await api.get("/games", {
+        const response = await api.get("/games", {
           params: {
             skip: (currentPage - 1) * itemsPerPage,
             take: itemsPerPage,
           },
         });
 
-        const cardDataResponse = cardDataRequest.data;
-
-        // Alphabeticall order
-        const sortedCardData = cardDataResponse.sort((a, b) =>
-          a.title.localeCompare(b.title)
-        );
-
-        setCardData(sortedCardData);
+        setCardData(response.data.games);
+        setTotalItems(response.data.total);
       } catch (error) {
-        console.log(error);
+        console.error("Error fetching data:", error);
+        setCardData([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetch();
-  }, [currentPage]); 
-
-  const totalPages = Math.ceil(cardData.length / itemsPerPage);
-
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
-  };
+    fetchData();
+  }, [currentPage]);
 
   return (
     <div>
@@ -54,10 +44,14 @@ export default function List() {
         <div className="flex flex-col my-6 gap-2 border-b-2 pb-2">
           <h1 className="text-5xl font-extrabold">Browse Games</h1>
         </div>
+
         {loading ? (
           <Spinner />
+        ) : !cardData || cardData.length === 0 ? (
+          <p className="text-center text-gray-500">No games found.</p>
         ) : (
           <>
+            {/* Game Grid */}
             <div className="grid grid-cols-2 md:grid-cols-4 place-items-center gap-10">
               {cardData.map((data) => (
                 <CardDefault
@@ -70,35 +64,15 @@ export default function List() {
                 />
               ))}
             </div>
-            {/* Pagination Controls */}
-            <div className="flex justify-center items-center mt-6">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 mx-2 bg-gray-300 rounded-md hover:bg-gray-400"
-              >
-                Previous
-              </button>
-              {Array.from({ length: totalPages }, (_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => handlePageChange(index + 1)}
-                  className={`px-4 py-2 mx-1 rounded-md ${
-                    currentPage === index + 1
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-300 hover:bg-gray-400"
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 mx-2 bg-gray-300 rounded-md hover:bg-gray-400"
-              >
-                Next
-              </button>
+
+            {/* Pagination Component */}
+            <div className="mt-6 flex justify-center">
+              <Pagination
+                totalPosts={totalItems}
+                postsPerPage={itemsPerPage}
+                currentPage={currentPage} // Pass currentPage explicitly
+                setCurrentPage={setCurrentPage} // Ensure correct state update
+              />
             </div>
           </>
         )}

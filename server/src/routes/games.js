@@ -13,7 +13,6 @@ const {
 } = require("../controllers/games");
 const sharp = require("sharp");
 
-
 const s3Client = new S3Client({
   region: process.env.AWS_REGION,
   credentials: {
@@ -22,7 +21,7 @@ const s3Client = new S3Client({
   },
 });
 
-const storageCover = multer.memoryStorage(); 
+const storageCover = multer.memoryStorage();
 const uploadCover = multer({ storage: storageCover });
 
 router.get("/", getGames);
@@ -30,7 +29,7 @@ router.get("/id/:id", getGameByID);
 router.get("/search", getGame);
 router.post("/", uploadCover.single("cover"), addGame);
 
-const storageAssets = multer.memoryStorage(); 
+const storageAssets = multer.memoryStorage();
 const uploadAssets = multer({ storage: storageAssets });
 
 router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
@@ -58,10 +57,8 @@ router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
   const gameTitle = game.title.replace(/\s/g, "_");
 
   try {
-    // Convert the image to WebP format
     const webpBuffer = await sharp(file.buffer).webp().toBuffer();
 
-    
     const uploadParams = {
       Bucket: "pusatstudibucket",
       Key: `images/${gameTitle}_image_${Date.now()}.webp`,
@@ -71,20 +68,22 @@ router.post("/upload/image", uploadAssets.single("image"), async (req, res) => {
     };
 
     const command = new PutObjectCommand(uploadParams);
-    const uploadResult = await s3Client.send(command);
-    console.log("Image uploaded to S3:", uploadResult.Location);
+    await s3Client.send(command);
+
+    const imageUrl = `https://${uploadParams.Bucket}.s3.amazonaws.com/${uploadParams.Key}`;
+    console.log("Image uploaded to S3:", imageUrl);
 
     const image = await prisma.assets.create({
       data: {
         game_id: parseInt(game_id),
-        filename: uploadResult.Key.split("/").pop(),
+        filename: uploadParams.Key.split("/").pop(), 
         type: "image",
       },
     });
 
     res.status(200).json({
       message: "Image uploaded successfully",
-      url: uploadResult.Location,
+      url: imageUrl,
     });
   } catch (error) {
     console.error("Error uploading image:", error);
@@ -116,7 +115,6 @@ router.post("/upload/video", uploadAssets.single("video"), async (req, res) => {
 
   const gameTitle = game.title.replace(/\s/g, "_");
 
-  
   const uploadParams = {
     Bucket: "pusatstudibucket",
     Key: `videos/${gameTitle}_video_${Date.now()}${extname(file.originalname)}`,

@@ -57,6 +57,10 @@ export default function Detail() {
                     <p className="text-gray-400 text-md">Developed By</p>
                     <p>{game.developer}</p>
                   </div>
+                  <div className="flex flex-col pb-16">
+                    <p className="text-gray-400 text-md">Supervised By</p>
+                    <p>{game.publisher}</p>
+                  </div>
                   {game.download_link != null || game.download_link != "" && (
                     <Button
                       className="flex self-start bg-white text-black w-fit"

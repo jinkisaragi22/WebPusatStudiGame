@@ -16,10 +16,23 @@ const s3Client = new S3Client({
 });
 
 async function getGames(req, res) {
-  const { skip, take } = req.query;
-  const games = await prisma.games.findMany();
+  const skip = parseInt(req.query.skip) || 0;
+  const take = parseInt(req.query.take) || 12;
 
-  return res.status(200).json(games);
+  console.log("Backend received - Skip:", skip, "Take:", take); // Debugging
+
+  try {
+    const totalGames = await prisma.games.count(); // Total number of games
+    const games = await prisma.games.findMany({
+      skip,
+      take,
+    });
+
+    return res.status(200).json({ games, total: totalGames });
+  } catch (error) {
+    console.error("Error fetching games:", error);
+    return res.status(500).json({ error: "Internal Server Error" });
+  }
 }
 
 async function getGame(req, res) {
@@ -122,7 +135,6 @@ async function addGame(req, res) {
 
   try {
     console.log(file);
-    // Convert the cover image to WebP format using sharp
     const webpBuffer = await sharp(file.buffer).webp().toBuffer();
 
     const uploadParams = {
@@ -134,8 +146,10 @@ async function addGame(req, res) {
     };
 
     const command = new PutObjectCommand(uploadParams);
-    const uploadResult = await s3Client.send(command);
-    console.log("Cover uploaded to S3:", uploadResult.Location);
+    await s3Client.send(command);
+
+    const coverUrl = `https://${uploadParams.Bucket}.s3.amazonaws.com/${uploadParams.Key}`;
+    console.log("Cover uploaded to S3:", coverUrl);
 
     const game = await prisma.games.create({
       data: {
@@ -146,7 +160,7 @@ async function addGame(req, res) {
         publisher,
         group,
         isAI,
-        cover: uploadResult.Key.split("/").pop(),
+        cover: coverUrl,
       },
     });
 

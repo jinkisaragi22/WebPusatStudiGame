@@ -7,13 +7,32 @@ import {
   CardFooter,
   Typography,
   Button,
+  IconButton,
 } from "@material-tailwind/react";
+import { ShareIcon } from "@heroicons/react/24/outline";
 import ai from "../assets/AI-01.png";
 
 export default function CardDefault({ id, title, cover, group, isAI }) {
   const groupWords = group.split(" ");
-
   const bucket = import.meta.env.VITE_BUCKET_URL;
+  const gameUrl = `${window.location.origin}/games/${id}`;
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: title,
+          text: `Check out this game: ${title}`,
+          url: gameUrl,
+        });
+      } catch (error) {
+        console.error("Error sharing:", error);
+      }
+    } else {
+      navigator.clipboard.writeText(gameUrl);
+      alert("Game link copied to clipboard!");
+    }
+  };
 
   return (
     <Card className="flex flex-col mt-6 w-full max-w-xs md:max-w-sm lg:max-w-md h-96 group ease-in-out delay-75 duration-300 hover:scale-105">
@@ -50,10 +69,13 @@ export default function CardDefault({ id, title, cover, group, isAI }) {
           />
         )}
       </CardBody>
-      <CardFooter className="pt-0 ">
+      <CardFooter className="pt-0 flex justify-between items-center">
         <Link to={`/games/${id}`}>
           <Button className="w-full">Read More</Button>
         </Link>
+        <IconButton onClick={handleShare} variant="text" color="gray">
+          <ShareIcon className="h-6 w-6" />
+        </IconButton>
       </CardFooter>
     </Card>
   );
