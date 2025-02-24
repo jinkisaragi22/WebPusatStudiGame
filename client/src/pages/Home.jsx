@@ -39,6 +39,8 @@ export default function Home() {
   
     fetch();
   }, []);
+
+  
   return (
     <div>
       {loading ? (
@@ -63,6 +65,7 @@ export default function Home() {
                     title={data.title}
                     cover={data.cover}
                     isAI={data.isAI}
+                    engine={data.engine}
                   />
                   
                 ))}

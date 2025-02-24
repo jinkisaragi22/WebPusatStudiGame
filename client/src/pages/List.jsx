@@ -61,6 +61,7 @@ export default function List() {
                   title={data.title}
                   cover={data.cover}
                   isAI={data.isAI}
+                  engine={data.engine}
                 />
               ))}
             </div>

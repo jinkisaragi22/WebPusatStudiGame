@@ -11,11 +11,23 @@ import {
 } from "@material-tailwind/react";
 import { ShareIcon } from "@heroicons/react/24/outline";
 import ai from "../assets/AI-01.png";
+import unityLogo from "../assets/unity.png";
+import godotLogo from "../assets/godot.png";
+import unrealLogo from "../assets/unreal.png";
 
-export default function CardDefault({ id, title, cover, group, isAI }) {
+export default function CardDefault({ id, title, cover, group, isAI, engine }) {
   const groupWords = group.split(" ");
   const bucket = import.meta.env.VITE_BUCKET_URL;
   const gameUrl = `${window.location.origin}/games/${id}`;
+
+  const formattedEngine =
+    engine?.includes("Unreal Engine") ? "Unreal" : engine;
+
+  const engineLogos = {
+    Unity: unityLogo,
+    Godot: godotLogo,
+    Unreal: unrealLogo,
+  };
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -58,9 +70,14 @@ export default function CardDefault({ id, title, cover, group, isAI }) {
             </span>
           ))}
         </Typography>
-        <Typography variant="h5" color="blue-gray" className="mb-2">
-          {title}
+        <Typography variant="h5" color="blue-gray" className="">
+          {title} {engineLogos[formattedEngine] && (
+          <img src={engineLogos[formattedEngine]} alt={engine} className="w-10 h-10" />
+        )}
         </Typography>
+        {/* {engineLogos[formattedEngine] && (
+          <img src={engineLogos[formattedEngine]} alt={engine} className="w-5 h-5" />
+        )} */}
         {isAI && (
           <img
             src={ai}
